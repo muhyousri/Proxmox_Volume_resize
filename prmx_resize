@@ -1,0 +1,39 @@
+echo "Enter VM ID , e.g 411 , 615 "
+read vmid
+
+echo "Enter the plan you want to upgrade to ? [economic , developer , workload]"
+read target
+
+
+
+if  [ "$target" == "economic" ] ||  [ "$target" == "Economic" ] ; then
+        mem=2048
+        core=2
+        disk=40G
+elif  [ "$target" == "developer" ] ||  [ "$target" == "Developer" ] ; then
+        mem=4096
+        core=2
+        disk=60G
+elif  [ "$target" == "workload" ] ||  [ "$target" == "Workload" ] ; then
+        mem=6144
+        core=4
+        disk=80G
+else {
+        echo "Plan is not Correct , Please try again!!"
+              exit 1 ;
+                }
+        fi
+
+qm stop $vmid
+qm set $vmid --memory $mem --cores $core
+qm resize $vmid virtio0 $disk
+cd /var/lib/vz/images/$vmid/
+modprobe nbd max_part=16
+qemu-nbd -c /dev/nbd0 vm-*
+parted /dev/nbd0 resizepart 1 100% 2>/dev/null 1>/dev/null
+e2fsck -f -y /dev/nbd0p1 2>/dev/null 1>/dev/null^B
+resize2fs /dev/nbd0p1 2>/dev/null 1>/dev/null
+qemu-nbd -d /dev/nbd0 2>/dev/null 1>/dev/null
+qm start $vmid
+echo "Filesystem resized."
+echo "Done!"
