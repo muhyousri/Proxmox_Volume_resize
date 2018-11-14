@@ -5,6 +5,10 @@ echo "Enter the plan you want to upgrade to ? [economic , developer , workload]"
 read target
 
 
+if [ ! -d "/var/lib/vz/images/$vmid/" ]; then
+  echo "VM ID is not correct , Please try again!!"
+              exit 1 ;
+fi
 
 
 if  [ "$target" == "economic" ] ||  [ "$target" == "Economic" ] ; then
